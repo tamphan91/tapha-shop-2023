@@ -1,5 +1,5 @@
 import { Category } from "@prisma/client";
-import { prisma } from "./prisma";
+import { prisma } from ".";
 
 export function getCategories(): Promise<Category[]> {
   return prisma.category.findMany({

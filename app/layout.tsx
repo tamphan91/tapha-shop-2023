@@ -3,7 +3,7 @@ import { Inter } from "next/font/google";
 import Header from './header';
 import NavigationBar from "./navigation-bar";
 import Footer from './footer';
-import { getCategories } from '@/db/category';
+import { getCategories } from '@/lib/prisma/category';
 
 const inter = Inter({ subsets: ["latin"] });
 

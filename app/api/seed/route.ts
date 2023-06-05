@@ -1,5 +1,5 @@
-import { prisma } from "@/db/prisma";
-import { signup } from "@/db/user";
+import { prisma } from "@/lib/prisma";
+import { signup } from "@/lib/prisma/user";
 import { NextResponse } from "next/server";
 
 export async function GET() {
