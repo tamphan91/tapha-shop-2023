@@ -34,6 +34,9 @@ npx prisma studio
 
 ## Learn More
 
+To learn more about next middleware:
+https://github.com/vercel/examples/blob/main/edge-middleware/jwt-authentication/lib/auth.ts
+
 To learn more about Next.js, take a look at the following resources:
 
 - [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
