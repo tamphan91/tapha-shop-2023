@@ -1,6 +1,5 @@
 import ProductItem from "@/components/ProductItem";
 import { getCategories } from "@/lib/prisma/category";
-import { getUsers } from "@/lib/prisma/user";
 import { Category } from '@prisma/client';
 
 async function getCategoriesData(): Promise<Category[]> {
@@ -9,8 +8,7 @@ async function getCategoriesData(): Promise<Category[]> {
 }
 
 export default async function Home() {
-  // const users = await getUsers();
-  console.log("users");
+  console.log("Home");
   return (
     <main className="min-h-screen container mx-auto bg-red-300">
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center justify-items-center">

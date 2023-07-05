@@ -1,53 +1,69 @@
 import { User } from "@prisma/client";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 
-function signToken(user: Omit<User, "password">): string {
-  return jwt.sign(user, process.env.JWT_SECRET!, { expiresIn: "30d" });
+import type { NextRequest, NextResponse } from 'next/server'
+import { nanoid } from 'nanoid'
+import { JWTPayload, SignJWT, jwtVerify } from 'jose'
+import { USER_TOKEN, getJwtSecretKey } from "./constants";
+
+interface UserJwtPayload {
+  jti: string
+  iat: number
 }
 
-function verifyToken(token: string): string | jwt.JwtPayload | null {
+export class AuthError extends Error {}
+
+/**
+ * Verifies the user's JWT token and returns its payload if it's valid.
+ */
+export async function verifyAuth(req: NextRequest) {
+  const token = req.cookies.get(USER_TOKEN)?.value
+
+  if (!token) throw new AuthError('Missing user token')
+
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!);
-    return decoded;
-  } catch(err) {
-    console.log('err', err);
-    return null;
+    const verified = await jwtVerify(
+      token,
+      new TextEncoder().encode(getJwtSecretKey())
+    )
+    return verified.payload as UserJwtPayload
+  } catch (err) {
+    throw new AuthError('Your token has expired.')
   }
 }
 
-// function isAuth(req, res, next){
-//     const { authorization } = req.headers;
-//     if (authorization) {
-//       try {
-//         // Bearer xxx => xxx
-//         const token = authorization.slice(7, authorization.length);
-//         const decoded = jwt.verify(token, process.env.JWT_SECRET!);
-//         const user = await User.findOne({
-//           _id: decoded._id,
-//           "tokens.token": token,
-//         });
-  
-//         if (!user) {
-//           throw new Error();
-//         }
-//         req.user = user;
-//         next();
-//       } catch (error) {
-//         res.status(401).send("Please authenticate.");
-//       }
-//     } else {
-//       res.status(401).send("Token is not suppiled");
-//     }
-//   };
+/**
+ * Adds the user token cookie to a response.
+ */
+export async function setUserCookie(res: NextResponse, payload: JWTPayload) {
+  const token = await new SignJWT(payload)
+    .setProtectedHeader({ alg: 'HS256' })
+    .setJti(nanoid())
+    .setIssuedAt()
+    .setExpirationTime('2h')
+    .sign(new TextEncoder().encode(getJwtSecretKey()))
 
-function generatePassword(plainTextPassword: string): string {
+  res.cookies.set(USER_TOKEN, token, {
+    httpOnly: true,
+    maxAge: 60 * 60 * 2, // 2 hours in seconds
+  })
+
+  return res
+}
+
+/**
+ * Expires the user token cookie
+ */
+export function expireUserCookie(res: NextResponse) {
+  res.cookies.set(USER_TOKEN, '', { httpOnly: true, maxAge: 0 })
+  return res
+}
+
+export function generatePassword(plainTextPassword: string) {
   const saltRounds = 10;
   return bcrypt.hashSync(plainTextPassword, saltRounds);
 }
 
-function comparePasswords(plainTextPassword: string, hash: string): boolean {
+export function comparePasswords(plainTextPassword: string, hash: string) {
   return bcrypt.compareSync(plainTextPassword, hash);
 }
-
-export { signToken, verifyToken, generatePassword, comparePasswords };

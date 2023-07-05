@@ -3,7 +3,6 @@ import { Inter } from "next/font/google";
 import Header from './header';
 import NavigationBar from "./navigation-bar";
 import Footer from './footer';
-import { getCategories } from '@/lib/prisma/category';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,8 +16,6 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  
-  // const categories = await getCategories();
   console.log('layout');
   return (
     <html lang="en">

@@ -1,10 +1,10 @@
 // Exclude keys from user
-export function exclude<User, Key extends keyof User>(
-  user: User,
+export function exclude<T, Key extends keyof T>(
+  object: T,
   keys: Key[]
-): Omit<User, Key> {
+): Omit<T, Key> {
   for (let key of keys) {
-    delete user[key];
+    delete object[key];
   }
-  return user;
+  return object;
 }

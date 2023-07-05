@@ -1,28 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyToken } from "./lib/auth";
+import { verifyAuth } from "./lib/auth";
+import { jsonResponse } from "./lib/auth/utils";
 
 // Limit the middleware to paths starting with `/api/`
 export const config = {
   matcher: "/api/dashboard/:function*",
 };
 
-export function middleware(request: NextRequest) {
-  const requestHeaders = new Headers(request.headers);
-  const authorization = requestHeaders.get("authorization");
-  if (authorization) {
-    const token = authorization.slice(7, authorization.length);
-    // Call our authentication function to check the request
-    const decoded = verifyToken(token);
-    console.log("decoded", decoded);
-    if (decoded) {
-      // do something with the decoded token
-      return NextResponse.next();
+export async function middleware(req: NextRequest) {
+  // validate the user is authenticated
+  const verifiedToken = await verifyAuth(req).catch((err) => {
+    console.error(err.message)
+  })
+  console.log('verifiedToken', verifiedToken);
+  console.log('req.url', req.url);
+  if (!verifiedToken) {
+    // if this an API request, respond with JSON
+    if (req.nextUrl.pathname.startsWith('/api/')) {
+      return jsonResponse(401, { error: { message: 'authentication required' } })
+    }
+    // otherwise, redirect to the set token page
+    else {
+      return NextResponse.redirect(new URL('/', req.url))
     }
   }
-
-  // Respond with JSON indicating an error message
-  return new NextResponse(
-    JSON.stringify({ success: false, message: "authentication failed" }),
-    { status: 401, headers: { "content-type": "application/json" } }
-  );
 }
